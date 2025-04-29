@@ -1,7 +1,7 @@
 # Project Roadmap
 
 ## Current Version (1.0.0)
-✅ Core functionality implemented:
+:white_check_mark: Core functionality implemented:
 - VM Management
 - SSL Certificate handling
 - Storage Management
@@ -103,7 +103,7 @@ We welcome community input! Please suggest features through:
 Want to help implement these features? Check our [Contributing Guide](CONTRIBUTING.md)!
 
 ## Timeline
-- 1.0.0: April 2025 ✅
+- 1.0.0: April 2025 :white_check_mark:
 - 1.1.0: July 2025
 - 1.2.0: October 2025
 - 2.0.0: January 2026
