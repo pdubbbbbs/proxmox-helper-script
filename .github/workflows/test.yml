@@ -1,0 +1,139 @@
+name: Test and Coverage
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        powershell: [7.0, 7.2, 7.3]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup PowerShell
+      uses: PowerShell/PowerShell@v1
+      with:
+        powershell-version: ${{ matrix.powershell }}
+
+    - name: Install Pester
+      shell: pwsh
+      run: |
+        Set-PSRepository PSGallery -InstallationPolicy Trusted
+        Install-Module -Name Pester -MinimumVersion 5.0.0 -Force
+        Install-Module -Name PSScriptAnalyzer -Force
+
+    - name: Run Tests
+      shell: pwsh
+      run: |
+        $config = @{
+          Run = @{
+            Path = './tests'
+            PassThru = $true
+            Output = 'Detailed'
+          }
+          CodeCoverage = @{
+            Enabled = $true
+            Path = './src/modules/*.psm1'
+            OutputFormat = 'JaCoCo'
+            OutputPath = './coverage.xml'
+          }
+          TestResult = @{
+            Enabled = $true
+            OutputFormat = 'NUnitXml'
+            OutputPath = './testResults.xml'
+          }
+        }
+        
+        $result = Invoke-Pester -Configuration $config
+        
+        if ($result.FailedCount -gt 0) {
+          throw "$($result.FailedCount) tests failed."
+        }
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-${{ matrix.os }}-${{ matrix.powershell }}
+        path: testResults.xml
+
+    - name: Upload Coverage Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-results-${{ matrix.os }}-${{ matrix.powershell }}
+        path: coverage.xml
+
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: testResults.xml
+        check_name: Test Results (${{ matrix.os }} - PS${{ matrix.powershell }})
+
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-${{ matrix.os }}-${{ matrix.powershell }}
+        fail_ci_if_error: true
+
+  analyze:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup PowerShell
+      uses: PowerShell/PowerShell@v1
+
+    - name: Install PSScriptAnalyzer
+      shell: pwsh
+      run: |
+        Set-PSRepository PSGallery -InstallationPolicy Trusted
+        Install-Module -Name PSScriptAnalyzer -Force
+
+    - name: Run PSScriptAnalyzer
+      shell: pwsh
+      run: |
+        $results = Invoke-ScriptAnalyzer -Path . -Recurse -Settings PSGallery
+        $results | Format-Table -AutoSize
+        if ($results) {
+          throw "PSScriptAnalyzer found $($results.Count) issues."
+        }
+
+  publish:
+    needs: [test, analyze]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup PowerShell
+      uses: PowerShell/PowerShell@v1
+
+    - name: Publish to PowerShell Gallery
+      if: success()
+      shell: pwsh
+      env:
+        NUGET_KEY: ${{ secrets.POWERSHELL_GALLERY_KEY }}
+      run: |
+        try {
+          Publish-Module -Path . -NuGetApiKey $env:NUGET_KEY -Verbose
+        }
+        catch {
+          Write-Error "Failed to publish module: $_"
+          exit 1
+        }
