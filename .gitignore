@@ -1,0 +1,34 @@
+# PowerShell
+*.ps1.log
+*.psm1.log
+*.psd1.log
+*.log
+
+# Credentials and Secrets
+*creds*.xml
+*.pfx
+*.key
+*.crt
+*.cer
+*.pem
+
+# Windows
+[Tt]humbs.db
+*.lnk
+[Dd]esktop.ini
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Project-specific
+.proxmoxhelper/
+certs/
+logs/
+temp/
+
+# OS-specific
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
