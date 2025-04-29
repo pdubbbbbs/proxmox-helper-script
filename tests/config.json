@@ -1,0 +1,15 @@
+{
+    "PSVersion": "7.0",
+    "TestFramework": "Pester",
+    "TestType": "Unit",
+    "CodeCoverage": {
+        "Enabled": true,
+        "OutputFormat": "JaCoCo",
+        "OutputPath": "./coverage.xml",
+        "Threshold": 80
+    },
+    "Output": {
+        "Verbosity": "Detailed",
+        "IncludeVSCodeMarker": true
+    }
+}
