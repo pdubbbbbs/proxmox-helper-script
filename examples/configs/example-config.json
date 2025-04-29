@@ -1,0 +1,17 @@
+{
+    "Name": "example-config",
+    "Settings": {
+        "Server": "pve.sslgen.cam",
+        "Port": 8006,
+        "Username": "root@pam",
+        "DefaultNode": "pve",
+        "DefaultStorage": "local-lvm",
+        "LogLevel": "Normal",
+        "Custom": {
+            "DefaultVMTemplate": "debian-11-template",
+            "BackupSchedule": "0 2 * * *",
+            "AutoSnapshot": true,
+            "SnapshotRetention": 5
+        }
+    }
+}
