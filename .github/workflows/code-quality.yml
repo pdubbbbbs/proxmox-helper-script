@@ -1,0 +1,171 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  analyze:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up PowerShell
+        uses: PowerShell/PowerShell@v1
+        with:
+          powershell-version: '7.3'
+
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module -Name PSScriptAnalyzer -Force
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          $results = Invoke-ScriptAnalyzer -Path . -Recurse -Settings .vscode/PSScriptAnalyzerSettings.psd1
+          $results | Format-Table -AutoSize
+          if ($results) {
+            throw "PSScriptAnalyzer found $($results.Count) issues."
+          }
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run Security Scan
+        uses: github/codeql-action/init@v2
+        with:
+          languages: powershell
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  style:
+    name: Style Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check Line Endings
+        run: |
+          if find . -type f -exec file "{}" \; | grep CRLF; then
+            echo "Files with CRLF line endings found. Please use LF line endings."
+            exit 1
+          fi
+
+      - name: Check File Encoding
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Recurse -File | Where-Object { $_.Extension -in '.ps1','.psm1','.psd1','.md','.yml' }
+          foreach ($file in $files) {
+            $content = Get-Content $file.FullName -Raw
+            if ($content -match '\x00') {
+              throw "File $($file.Name) appears to be binary or uses invalid encoding."
+            }
+          }
+
+      - name: Check Formatting
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Recurse -File | Where-Object { $_.Extension -in '.ps1','.psm1','.psd1' }
+          foreach ($file in $files) {
+            $content = Get-Content $file.FullName -Raw
+            if ($content -match '\t') {
+              throw "File $($file.Name) contains tabs. Please use spaces for indentation."
+            }
+            if ($content -match '[ \t]+$') {
+              throw "File $($file.Name) contains trailing whitespace."
+            }
+          }
+
+  docs:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up PowerShell
+        uses: PowerShell/PowerShell@v1
+        with:
+          powershell-version: '7.3'
+
+      - name: Install PlatyPS
+        shell: pwsh
+        run: |
+          Install-Module -Name platyPS -Force -Scope CurrentUser
+
+      - name: Check Documentation
+        shell: pwsh
+        run: |
+          Import-Module ./ProxmoxHelper.psd1 -Force
+          $commands = Get-Command -Module ProxmoxHelper
+          foreach ($command in $commands) {
+            $help = Get-Help $command.Name
+            if (-not $help.Synopsis -or $help.Synopsis -eq '') {
+              throw "Command $($command.Name) is missing synopsis."
+            }
+            if (-not $help.Description -or $help.Description.Text -eq '') {
+              throw "Command $($command.Name) is missing description."
+            }
+            if (-not $help.Examples -or $help.Examples.Count -eq 0) {
+              throw "Command $($command.Name) is missing examples."
+            }
+          }
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up PowerShell
+        uses: PowerShell/PowerShell@v1
+        with:
+          powershell-version: '7.3'
+
+      - name: Install Pester
+        shell: pwsh
+        run: |
+          Install-Module -Name Pester -MinimumVersion 5.0.0 -Force -Scope CurrentUser
+
+      - name: Run Tests with Coverage
+        shell: pwsh
+        run: |
+          $config = @{
+            Run = @{
+              Path = './tests'
+              PassThru = $true
+            }
+            CodeCoverage = @{
+              Enabled = $true
+              Path = '*.ps*1', 'src/**/*.ps*1'
+              OutputFormat = 'JaCoCo'
+              OutputPath = './coverage.xml'
+              CoveragePercentTarget = 80
+            }
+          }
+          
+          $result = Invoke-Pester -Configuration $config
+          if ($result.CodeCoverage.CoveragePercent -lt 80) {
+            throw "Code coverage is below 80%"
+          }
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
