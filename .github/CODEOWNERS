@@ -1,0 +1,17 @@
+# Default owners for everything in the repo
+* @pdubbbbbs
+
+# Documentation owners
+/docs/ @pdubbbbbs
+*.md @pdubbbbbs
+
+# PowerShell module owners
+*.ps1 @pdubbbbbs
+*.psm1 @pdubbbbbs
+*.psd1 @pdubbbbbs
+
+# Test owners
+/tests/ @pdubbbbbs
+
+# GitHub specific files
+/.github/ @pdubbbbbs
