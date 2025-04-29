@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  dev:
+    build: .
+    volumes:
+      - .:/app
+    command: ["-NoExit", "-Command", "Import-Module ./ProxmoxHelper.psd1 -Force; Write-Host 'Development environment ready'"]
+    environment:
+      - POWERSHELL_TELEMETRY_OPTOUT=1
+
+  test:
+    build: .
+    volumes:
+      - .:/app
+    command: ["-File", "build.ps1", "-Task", "Test"]
+    environment:
+      - POWERSHELL_TELEMETRY_OPTOUT=1
+
+  build:
+    build: .
+    volumes:
+      - .:/app
+    command: ["-File", "build.ps1", "-Task", "All"]
+    environment:
+      - POWERSHELL_TELEMETRY_OPTOUT=1
+
+  publish:
+    build: .
+    volumes:
+      - .:/app
+    command: ["-File", "build.ps1", "-Task", "Publish"]
+    environment:
+      - POWERSHELL_TELEMETRY_OPTOUT=1
+      - POWERSHELL_GALLERY_KEY=\
