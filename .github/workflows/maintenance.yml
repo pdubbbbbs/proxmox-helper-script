@@ -1,0 +1,73 @@
+name: Maintenance
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # Run monthly
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Remove old workflows
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          retain_days: 30
+          keep_minimum_runs: 5
+
+  dependency-update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up PowerShell
+        uses: PowerShell/PowerShell@v1
+
+      - name: Update dependencies
+        shell: pwsh
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          $modules = @(
+            'Pester'
+            'PSScriptAnalyzer'
+            'platyPS'
+          )
+          foreach ($module in $modules) {
+            Update-Module -Name $module -Force
+          }
+
+  verify-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check markdown links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'yes'
+          config-file: '.github/workflows/mlc_config.json'
+          folder-path: '.'
+          max-depth: -1
+
+  license-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check license headers
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Recurse -Include *.ps1,*.psm1,*.psd1
+          $currentYear = (Get-Date).Year
+          $licenseHeader = "Copyright (c)  Philip S. Wright"
+          
+          foreach ($file in $files) {
+            $content = Get-Content $file -Raw
+            if (-not ($content -match $licenseHeader)) {
+              throw "Missing or incorrect license header in $($file.FullName)"
+            }
+          }
+
