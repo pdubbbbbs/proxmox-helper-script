@@ -3,16 +3,16 @@
 ## Basic Usage
 
 ### Connect to Proxmox Server
-\\\powershell
+```powershell
 # Using default configuration
 Connect-ProxmoxServer -Server 'pve.sslgen.cam' -Username 'root@pam'
 
 # Using saved configuration
 Connect-ProxmoxServer -ConfigName 'example-config'
-\\\
+```
 
 ### VM Management
-\\\powershell
+```powershell
 # List all VMs
 Get-ProxmoxVM
 
@@ -25,19 +25,19 @@ Stop-ProxmoxVM -VMID 100 -Force
 
 # Create backup
 New-ProxmoxBackup -VMID 100 -Storage 'local' -Compress
-\\\
+```
 
 ### SSL Certificate Management
-\\\powershell
+```powershell
 # Generate self-signed certificate
 New-ProxmoxSSLCertificate -Domain 'pve.sslgen.cam' -Type SelfSigned
 
 # Install certificate
 Install-ProxmoxSSLCertificate -Domain 'pve.sslgen.cam' -CertPath './certs'
-\\\
+```
 
 ### Monitoring
-\\\powershell
+```powershell
 # Get cluster status
 Get-ProxmoxClusterStatus -IncludeResources
 
@@ -46,49 +46,49 @@ Watch-ProxmoxMetrics -VMID 100 -MetricType all -RefreshInterval 5
 
 # Run health check
 Test-ProxmoxHealth -IncludeStorage -IncludeNetwork
-\\\
+```
 
 ## Advanced Usage
 
 ### Custom Configuration
-\\\powershell
+```powershell
 # Create custom configuration
 $customSettings = @{
-    DefaultVMTemplate = 'debian-11-template'
-    BackupSchedule = '0 2 * * *'
+    DefaultVMTemplate = "debian-11-template"
+    BackupSchedule = "0 2 * * *"
     AutoSnapshot = $true
     SnapshotRetention = 5
 }
 
-Set-ProxmoxConfig -ConfigName 'custom' 
-                  -Server 'pve.sslgen.cam' 
-                  -Username 'root@pam' 
+Set-ProxmoxConfig -ConfigName "custom" `
+                  -Server "pve.sslgen.cam" `
+                  -Username "root@pam" `
                   -CustomSettings $customSettings
 
 # Export configuration
-Export-ProxmoxConfig -ConfigName 'custom' -Path './custom-config.json'
-\\\
+Export-ProxmoxConfig -ConfigName "custom" -Path "./custom-config.json"
+```
 
 ### Automated Tasks
-\\\powershell
+```powershell
 # Schedule daily backups
 $backup = {
-    Connect-ProxmoxServer -ConfigName 'custom'
+    Connect-ProxmoxServer -ConfigName "custom"
     Get-ProxmoxVM | ForEach-Object {
         New-ProxmoxBackup -VMID $_.vmid -Compress
     }
 }
 
-Register-ScheduledJob -Name 'ProxmoxBackup' 
-                     -ScriptBlock $backup 
-                     -Trigger (New-JobTrigger -Daily -At '2:00 AM')
-\\\
+Register-ScheduledJob -Name "ProxmoxBackup" `
+                     -ScriptBlock $backup `
+                     -Trigger (New-JobTrigger -Daily -At "2:00 AM")
+```
 
 ### Error Handling
-\\\powershell
+```powershell
 try {
-    Connect-ProxmoxServer -Server 'pve.sslgen.cam' -ErrorAction Stop
-    New-ProxmoxVM -Name 'test-vm' -ErrorAction Stop
+    Connect-ProxmoxServer -Server "pve.sslgen.cam" -ErrorAction Stop
+    New-ProxmoxVM -Name "test-vm" -ErrorAction Stop
 }
 catch {
     Write-Log "Failed to create VM: $_" -Level Error
@@ -96,7 +96,7 @@ catch {
 finally {
     Disconnect-ProxmoxServer
 }
-\\\
+```
 
 ## Best Practices
 
