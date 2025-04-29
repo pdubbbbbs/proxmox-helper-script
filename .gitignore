@@ -18,7 +18,7 @@
 [Dd]esktop.ini
 
 # VS Code
-.vscode/
+# .vscode/  # Keeping VSCode settings for development consistency
 *.code-workspace
 
 # Project-specific
