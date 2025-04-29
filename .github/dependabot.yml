@@ -1,0 +1,63 @@
+version: 2
+updates:
+  # Maintain dependencies for PowerShell modules
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "automated"
+    assignees:
+      - "pdubbbbbs"
+    reviewers:
+      - "pdubbbbbs"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "automated"
+      - "github-actions"
+    assignees:
+      - "pdubbbbbs"
+    reviewers:
+      - "pdubbbbbs"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+
+  # Maintain dependencies for Docker
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "automated"
+      - "docker"
+    assignees:
+      - "pdubbbbbs"
+    reviewers:
+      - "pdubbbbbs"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
