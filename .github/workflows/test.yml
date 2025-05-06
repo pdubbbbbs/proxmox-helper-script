@@ -17,7 +17,7 @@ jobs:
         powershell: [7.0, 7.2, 7.3]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Setup PowerShell
       uses: PowerShell/PowerShell@v1
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Setup PowerShell
       uses: PowerShell/PowerShell@v1
@@ -119,7 +119,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Setup PowerShell
       uses: PowerShell/PowerShell@v1
