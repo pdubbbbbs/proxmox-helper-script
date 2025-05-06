@@ -1,5 +1,5 @@
 # Use PowerShell as base image
-FROM mcr.microsoft.com/powershell:7.3-ubuntu-22.04
+FROM mcr.microsoft.com/powershell:7.5-ubuntu-24.04
 
 # Set working directory
 WORKDIR /app
