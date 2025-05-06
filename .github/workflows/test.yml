@@ -61,14 +61,14 @@ jobs:
 
     - name: Upload Test Results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: test-results-${{ matrix.os }}-${{ matrix.powershell }}
         path: testResults.xml
 
     - name: Upload Coverage Results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-results-${{ matrix.os }}-${{ matrix.powershell }}
         path: coverage.xml
